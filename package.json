@@ -3,7 +3,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com"
   },
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "This repository uses sequelize to access and manipulate external tasks.",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
