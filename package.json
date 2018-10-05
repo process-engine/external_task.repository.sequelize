@@ -13,12 +13,14 @@
   ],
   "dependencies": {
     "@essential-projects/errors_ts": "1.3.3",
+    "@essential-projects/sequelize_connection_manager": "1.0.6",
     "@process-engine/external_task_api_contracts": "feature~fix_ts_implementation"
   },
   "devDependencies": {
     "@essential-projects/tslint-config": "1.1.2",
     "@types/node": "8.10.10",
     "@types/sequelize": "4.27.23",
+    "bluebird": "3.5.2",
     "gulp": "3.9.1",
     "gulptraum": "2.3.0",
     "gulptraum-typescript": "1.5.0",
