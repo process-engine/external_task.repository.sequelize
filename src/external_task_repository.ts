@@ -8,17 +8,17 @@ import {getConnection} from '@essential-projects/sequelize_connection_manager';
 import {ExternalTask, IExternalTask, IExternalTaskRepository} from '@process-engine/external_task_api_contracts';
 
 import {loadModels} from './model_loader';
-import {ExternalTaskDefinition} from './schemas';
+import {ExternalTaskModel} from './schemas';
 
 export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public config: Sequelize.Options;
 
-  private _externalTaskModel: Sequelize.Model<ExternalTaskDefinition, IExternalTask>;
+  private _externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask>;
 
   private sequelize: Sequelize.Sequelize;
 
-  private get externalTaskModel(): Sequelize.Model<ExternalTaskDefinition, IExternalTask> {
+  private get externalTaskModel(): Sequelize.Model<ExternalTaskModel, IExternalTask> {
     return this._externalTaskModel;
   }
 
@@ -60,7 +60,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
       options.limit = maxTasks;
     }
 
-    const results: Array<ExternalTaskDefinition> = await this.externalTaskModel.findAll(options);
+    const results: Array<ExternalTaskModel> = await this.externalTaskModel.findAll(options);
 
     if (!results || results.length === 0) {
       return [];
@@ -69,7 +69,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const lockExpirationTime: Date = moment().add(lockDurationInMs, 'milliseconds').toDate();
 
     const externalTasks: Array<ExternalTask> =
-      await bluebird.map(results, async(externalTask: ExternalTaskDefinition): Promise<ExternalTask> => {
+      await bluebird.map(results, async(externalTask: ExternalTaskModel): Promise<ExternalTask> => {
         return this._lockAndConvertExternalTask(externalTask, workerId, lockExpirationTime);
       });
 
@@ -78,7 +78,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public async extendLock(workerId: string, externalTaskId: string, additionalDuration: number): Promise<void> {
 
-    const externalTask: ExternalTaskDefinition = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
         id: externalTaskId,
       },
@@ -94,7 +94,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public async handleBpmnError(workerId: string, externalTaskId: string, errorCode: string): Promise<void> {
 
-    const externalTask: ExternalTaskDefinition = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
         id: externalTaskId,
       },
@@ -113,7 +113,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public async handleServiceError(workerId: string, externalTaskId: string, errorMessage: string, errorDetails: string): Promise<void> {
 
-    const externalTask: ExternalTaskDefinition = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
         id: externalTaskId,
       },
@@ -134,7 +134,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public async finishExternalTask(workerId: string, externalTaskId: string, result: any): Promise<void> {
 
-    const externalTask: ExternalTaskDefinition = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
         id: externalTaskId,
       },
@@ -156,7 +156,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    * @param workerId       The ID of the worker attempting to manipulate the
    *                       ExternalTask.
    */
-  private _ensureExternalTaskCanBeAccessedByWorker(externalTask: ExternalTaskDefinition, externalTaskId: string, workerId: string): void {
+  private _ensureExternalTaskCanBeAccessedByWorker(externalTask: ExternalTaskModel, externalTaskId: string, workerId: string): void {
 
     if (!externalTask) {
       throw new EssentialProjectErrors.NotFoundError(`External Task with ID '${externalTaskId}' not found.`);
@@ -191,7 +191,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    * @returns                    An ExternalTask object usable by the
    *                             ProcessEngine.
    */
-  private async _lockAndConvertExternalTask(externalTask: ExternalTaskDefinition, workerId: string, lockExpirationTime: Date): Promise<ExternalTask> {
+  private async _lockAndConvertExternalTask(externalTask: ExternalTaskModel, workerId: string, lockExpirationTime: Date): Promise<ExternalTask> {
 
     await this._lockExternalTask(externalTask.id, workerId, lockExpirationTime);
 
@@ -232,7 +232,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    * @param   dataModel The ExternalTaskModel to convert.
    * @returns           An ExternalTask object usable by the ProcessEngine.
    */
-  private _convertToRuntimeObject(dataModel: ExternalTaskDefinition): ExternalTask {
+  private _convertToRuntimeObject(dataModel: ExternalTaskModel): ExternalTask {
 
     const payload: any = dataModel.payload
       ? JSON.parse(dataModel.payload)

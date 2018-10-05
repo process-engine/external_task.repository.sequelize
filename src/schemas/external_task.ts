@@ -2,9 +2,9 @@ import * as Sequelize from 'sequelize';
 
 import {IExternalTask} from '@process-engine/external_task_api_contracts';
 
-export type ExternalTaskDefinition = Sequelize.Instance<IExternalTask> & IExternalTask;
+export type ExternalTaskModel = Sequelize.Instance<IExternalTask> & IExternalTask;
 
-export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Model<ExternalTaskDefinition, IExternalTask> {
+export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Model<ExternalTaskModel, IExternalTask> {
   const attributes: SequelizeAttributes<IExternalTask> = {
     id: {
       type: Sequelize.UUID,
@@ -62,5 +62,5 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
     },
   };
 
-  return sequelize.define<ExternalTaskDefinition, IExternalTask>('ExternalTask', attributes);
+  return sequelize.define<ExternalTaskModel, IExternalTask>('ExternalTask', attributes);
 }

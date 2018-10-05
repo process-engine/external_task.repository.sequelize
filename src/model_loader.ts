@@ -4,12 +4,19 @@ import {IExternalTask} from '@process-engine/external_task_api_contracts';
 
 import {
   defineExternalTask,
-  ExternalTaskDefinition,
+  ExternalTaskModel,
 } from './schemas/index';
 
-export async function loadModels(sequelizeInstance: Sequelize.Sequelize): Promise<Sequelize.Model<ExternalTaskDefinition, IExternalTask>> {
+/**
+ * Initializes the ExternalTaskModel model within the given Sequelize instance.
+ *
+ * @async
+ * @param   sequelizeInstance The instance used to initialize the model.
+ * @returns                   The initialized ExternalTaskModel.
+ */
+export async function loadModels(sequelizeInstance: Sequelize.Sequelize): Promise<Sequelize.Model<ExternalTaskModel, IExternalTask>> {
 
-  const externalTaskModel: Sequelize.Model<ExternalTaskDefinition, IExternalTask> = defineExternalTask(sequelizeInstance);
+  const externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask> = defineExternalTask(sequelizeInstance);
 
   await sequelizeInstance.sync();
 
