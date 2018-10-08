@@ -40,7 +40,7 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
       allowNull: true,
     },
     isFinished: {
-      type: Sequelize.STRING,
+      type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false,
     },
