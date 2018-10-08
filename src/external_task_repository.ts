@@ -64,10 +64,10 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const options: Sequelize.FindOptions<IExternalTask> = {
       where: {
         topic: topicName,
-        isFinished: false,
+        isFinished: false, // NOTE: Postgres cannot handle booleans here.
         lockExpirationTime: {
           [Sequelize.Op.or]: [
-            null,
+            {[Sequelize.Op.eq]: null},
             {[Sequelize.Op.lt]: now},
           ],
         },
