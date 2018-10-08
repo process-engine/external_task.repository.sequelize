@@ -64,7 +64,10 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
         topic: topicName,
         isFinished: false,
         lockExpirationTime: {
-          [Sequelize.Op.lt]: moment().toDate(),
+          [Sequelize.Op.or]: [
+            null,
+            {[Sequelize.Op.lt]: moment().toDate()},
+          ],
         },
       },
     };
@@ -85,10 +88,14 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
         id: externalTaskId,
-        workerId: workerId,
       },
     });
 
+    if (!externalTask) {
+        throw new NotFoundError(`ExternalTask with ID ${externalTaskId} not found.`);
+    }
+
+    externalTask.workerId = workerId;
     externalTask.lockExpirationTime = exprationTime;
 
     await externalTask.save();
