@@ -1,5 +1,5 @@
 {
-  "name": "@process-engine/external_task.repository.file_system",
+  "name": "@process-engine/external_task.repository.sequelize",
   "publishConfig": {
     "registry": "https://www.npmjs.com"
   },
