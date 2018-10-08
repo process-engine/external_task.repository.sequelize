@@ -59,6 +59,8 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
   public async fetchAvailableForProcessing(topicName: string, maxTasks: number): Promise<Array<ExternalTask>> {
 
+    const now: Date = moment().toDate();
+
     const options: Sequelize.FindOptions<IExternalTask> = {
       where: {
         topic: topicName,
@@ -66,7 +68,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
         lockExpirationTime: {
           [Sequelize.Op.or]: [
             null,
-            {[Sequelize.Op.lt]: moment().toDate()},
+            {[Sequelize.Op.lt]: now},
           ],
         },
       },
