@@ -4,7 +4,7 @@ import * as Sequelize from 'sequelize';
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
 
-import {ExternalTask, IExternalTask, IExternalTaskRepository} from '@process-engine/external_task_api_contracts';
+import {ExternalTask, ExternalTaskState, IExternalTask, IExternalTaskRepository} from '@process-engine/external_task_api_contracts';
 
 import {loadModels} from './model_loader';
 import {ExternalTaskModel} from './schemas';
@@ -64,7 +64,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const options: Sequelize.FindOptions<IExternalTask> = {
       where: {
         topic: topicName,
-        isFinished: false, // NOTE: Postgres cannot handle booleans here.
+        state: ExternalTaskState.pending,
         lockExpirationTime: {
           [Sequelize.Op.or]: [
             {[Sequelize.Op.eq]: null},
@@ -112,7 +112,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     });
 
     externalTask.error = JSON.stringify(error);
-    externalTask.isFinished = true;
+    externalTask.state = ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
   }
@@ -126,7 +126,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     });
 
     externalTask.result = JSON.stringify(result);
-    externalTask.isFinished = true;
+    externalTask.state = ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
   }
@@ -162,7 +162,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     externalTask.processInstanceId = dataModel.processInstanceId;
     externalTask.payload = payload;
     externalTask.lockExpirationTime = dataModel.lockExpirationTime;
-    externalTask.isFinished = dataModel.isFinished;
+    externalTask.state = ExternalTaskState[dataModel.state];
     externalTask.finishedAt = dataModel.finishedAt;
     externalTask.error = error;
     externalTask.result = result;

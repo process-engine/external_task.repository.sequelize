@@ -1,6 +1,6 @@
 import * as Sequelize from 'sequelize';
 
-import {IExternalTask} from '@process-engine/external_task_api_contracts';
+import {ExternalTaskState, IExternalTask} from '@process-engine/external_task_api_contracts';
 
 export type ExternalTaskModel = Sequelize.Instance<IExternalTask> & IExternalTask;
 
@@ -39,10 +39,10 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
       type: Sequelize.STRING,
       allowNull: true,
     },
-    isFinished: {
-      type: Sequelize.BOOLEAN,
+    state: {
+      type: Sequelize.STRING,
       allowNull: false,
-      defaultValue: false,
+      defaultValue: ExternalTaskState.pending,
     },
     finishedAt: {
       type: Sequelize.DATE,
