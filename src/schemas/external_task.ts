@@ -1,6 +1,21 @@
 import * as Sequelize from 'sequelize';
 
-import {ExternalTaskState, IExternalTask} from '@process-engine/external_task_api_contracts';
+export interface IExternalTask {
+  id: string;
+  workerId?: string;
+  topic: string;
+  flowNodeInstanceId: string;
+  correlationId: string;
+  processInstanceId: string;
+  lockExpirationTime?: Date;
+  isLocked?: boolean;
+  payload: any;
+  state: string;
+  finishedAt?: Date;
+  result?: any;
+  error?: any;
+  createdAt?: Date;
+}
 
 export type ExternalTaskModel = Sequelize.Instance<IExternalTask> & IExternalTask;
 
@@ -42,7 +57,7 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
     state: {
       type: Sequelize.STRING,
       allowNull: false,
-      defaultValue: ExternalTaskState.pending,
+      defaultValue: 'pending',
     },
     finishedAt: {
       type: Sequelize.DATE,

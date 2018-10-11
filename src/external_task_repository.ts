@@ -4,7 +4,12 @@ import * as Sequelize from 'sequelize';
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
 
-import {ExternalTask, ExternalTaskState, IExternalTask, IExternalTaskRepository} from '@process-engine/external_task_api_contracts';
+import {
+  ExternalTaskFromRepository,
+  ExternalTaskState,
+  IExternalTask,
+  IExternalTaskRepository,
+} from '@process-engine/external_task_api_contracts';
 
 import {loadModels} from './model_loader';
 import {ExternalTaskModel} from './schemas';
@@ -26,7 +31,12 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     this._externalTaskModel = await loadModels(this.sequelize);
   }
 
-  public async create(topic: string, correlationId: string, processInstanceId: string, flowNodeInstanceId: string, payload: any): Promise<void> {
+  public async create<TPayloadType>(topic: string,
+                                    correlationId: string,
+                                    processInstanceId: string,
+                                    flowNodeInstanceId: string,
+                                    payload: TPayloadType,
+                                   ): Promise<void> {
 
     const createParams: any = {
       topic: topic,
@@ -40,7 +50,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     await this.externalTaskModel.create(createParams);
   }
 
-  public async getById(externalTaskId: string): Promise<ExternalTask> {
+  public async getById<TPayloadType>(externalTaskId: string): Promise<ExternalTaskFromRepository<TPayloadType>> {
 
     const result: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
@@ -52,12 +62,14 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
       throw new NotFoundError(`ExternalTask with ID ${externalTaskId} not found.`);
     }
 
-    const externalTask: ExternalTask = this._convertToRuntimeObject(result);
+    const externalTask: ExternalTaskFromRepository<TPayloadType> = this._convertToRuntimeObject<TPayloadType>(result);
 
     return externalTask;
   }
 
-  public async fetchAvailableForProcessing(topicName: string, maxTasks: number): Promise<Array<ExternalTask>> {
+  public async fetchAvailableForProcessing<TPayloadType>(topicName: string,
+                                                         maxTasks: number,
+                                                        ): Promise<Array<ExternalTaskFromRepository<TPayloadType>>> {
 
     const now: Date = moment().toDate();
 
@@ -80,7 +92,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const results: Array<ExternalTaskModel> = await this.externalTaskModel.findAll(options);
 
-    const externalTasks: Array<ExternalTask> = results.map(this._convertToRuntimeObject.bind(this));
+    const externalTasks: Array<ExternalTaskFromRepository<TPayloadType>> = results.map(this._convertToRuntimeObject.bind(this));
 
     return externalTasks;
   }
@@ -139,7 +151,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    * @param   dataModel The ExternalTaskModel to convert.
    * @returns           An ExternalTask object usable by the ProcessEngine.
    */
-  private _convertToRuntimeObject(dataModel: ExternalTaskModel): ExternalTask {
+  private _convertToRuntimeObject<TPayloadType>(dataModel: ExternalTaskModel): ExternalTaskFromRepository<TPayloadType> {
 
     const payload: any = dataModel.payload
       ? JSON.parse(dataModel.payload)
@@ -153,7 +165,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
       ? JSON.parse(dataModel.error)
       : undefined;
 
-    const externalTask: ExternalTask = new ExternalTask();
+    const externalTask: ExternalTaskFromRepository<TPayloadType> = new ExternalTaskFromRepository();
     externalTask.id = dataModel.id;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
