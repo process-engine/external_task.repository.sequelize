@@ -50,7 +50,7 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
       allowNull: true,
     },
     payload: {
-      type: Sequelize.STRING,
+      type: Sequelize.TEXT,
       allowNull: true,
     },
     state: {
