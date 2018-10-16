@@ -1,5 +1,7 @@
 import * as Sequelize from 'sequelize';
 
+import {IIdentity} from '@essential-projects/iam_contracts';
+
 export interface IExternalTask {
   id: string;
   workerId?: string;
@@ -8,6 +10,7 @@ export interface IExternalTask {
   correlationId: string;
   processInstanceId: string;
   lockExpirationTime?: Date;
+  identity: string;
   payload: any;
   state: string;
   finishedAt?: Date;
@@ -48,6 +51,12 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
     lockExpirationTime: {
       type: Sequelize.DATE,
       allowNull: true,
+    },
+    identity: {
+      // Note: Sequelize.STRING equals varchar(255).
+      // Depending on the type of token used, this can easily exceed 255 chars.
+      type: Sequelize.TEXT,
+      allowNull: false,
     },
     payload: {
       type: Sequelize.TEXT,
