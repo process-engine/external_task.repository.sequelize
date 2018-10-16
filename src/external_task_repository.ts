@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
+import {IIdentity} from '@essential-projects/iam_contracts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
 
 import {
@@ -12,7 +13,6 @@ import {
 
 import {loadModels} from './model_loader';
 import {ExternalTaskModel, IExternalTask} from './schemas';
-import {IIdentity} from '@essential-projects/iam_contracts';
 
 export class ExternalTaskRepository implements IExternalTaskRepository {
 
@@ -179,6 +179,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     externalTask.flowNodeInstanceId = dataModel.flowNodeInstanceId;
     externalTask.correlationId = dataModel.correlationId;
     externalTask.processInstanceId = dataModel.processInstanceId;
+    externalTask.identity = identity;
     externalTask.payload = payload;
     externalTask.lockExpirationTime = dataModel.lockExpirationTime;
     externalTask.state = ExternalTaskState[dataModel.state];

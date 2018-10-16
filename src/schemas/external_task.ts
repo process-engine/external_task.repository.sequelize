@@ -1,7 +1,5 @@
 import * as Sequelize from 'sequelize';
 
-import {IIdentity} from '@essential-projects/iam_contracts';
-
 export interface IExternalTask {
   id: string;
   workerId?: string;
