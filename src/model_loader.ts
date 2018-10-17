@@ -1,10 +1,9 @@
 import * as Sequelize from 'sequelize';
 
-import {IExternalTask} from '@process-engine/external_task_api_contracts';
-
 import {
   defineExternalTask,
   ExternalTaskModel,
+  IExternalTask
 } from './schemas/index';
 
 /**
