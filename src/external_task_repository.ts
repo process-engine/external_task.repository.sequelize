@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
-
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
@@ -156,21 +155,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    */
   private _convertToRuntimeObject<TPayloadType>(dataModel: ExternalTaskModel): ExternalTask<TPayloadType> {
 
-    const identity: any = dataModel.identity
-      ? JSON.parse(dataModel.identity)
-      : undefined;
-
-    const payload: any = dataModel.payload
-      ? JSON.parse(dataModel.payload)
-      : undefined;
-
-    const result: any = dataModel.result
-      ? JSON.parse(dataModel.result)
-      : undefined;
-
-    const error: any = dataModel.error
-      ? JSON.parse(dataModel.error)
-      : undefined;
+    let [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
 
     const externalTask: ExternalTask<TPayloadType> = new ExternalTask<TPayloadType>();
     externalTask.id = dataModel.id;
@@ -189,5 +174,25 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     externalTask.createdAt = dataModel.createdAt;
 
     return externalTask;
+  }
+
+  private _sanitizeDataModel(dataModel: ExternalTaskModel): Array<any> {
+    const identity: any = dataModel.identity
+      ? JSON.parse(dataModel.identity)
+      : undefined;
+
+    const payload: any = dataModel.payload
+      ? JSON.parse(dataModel.payload)
+      : undefined;
+
+    const result: any = dataModel.result
+      ? JSON.parse(dataModel.result)
+      : undefined;
+
+    const error: any = dataModel.error
+      ? JSON.parse(dataModel.error)
+      : undefined;
+
+    return [identity, payload, result, error]
   }
 }
