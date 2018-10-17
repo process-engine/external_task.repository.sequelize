@@ -3,7 +3,6 @@ import * as Sequelize from 'sequelize';
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
-
 import {
   ExternalTask,
   ExternalTaskState,
