@@ -83,5 +83,5 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
     },
   };
 
-  return sequelize.define<ExternalTaskModel, IExternalTask>('ExternalTask', attributes);
+  return sequelize.define<ExternalTaskModel, IExternalTask>('ExternalTask', attributes, {version: true});
 }
