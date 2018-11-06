@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
+
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {getConnection} from '@essential-projects/sequelize_connection_manager';
@@ -68,7 +69,8 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     return externalTask;
   }
 
-  public async fetchAvailableForProcessing<TPayloadType>(topicName: string,
+  public async fetchAvailableForProcessing<TPayloadType>(
+    topicName: string,
     maxTasks: number,
   ): Promise<Array<ExternalTask<TPayloadType>>> {
 
@@ -154,7 +156,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    */
   private _convertToRuntimeObject<TPayloadType>(dataModel: ExternalTaskModel): ExternalTask<TPayloadType> {
 
-    let [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
+    const [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
 
     const externalTask: ExternalTask<TPayloadType> = new ExternalTask<TPayloadType>();
     externalTask.id = dataModel.id;
@@ -192,6 +194,6 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
       ? JSON.parse(dataModel.error)
       : undefined;
 
-    return [identity, payload, result, error]
+    return [identity, payload, result, error];
   }
 }
