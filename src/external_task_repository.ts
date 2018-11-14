@@ -166,6 +166,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     externalTask.topic = dataModel.topic;
     externalTask.flowNodeInstanceId = dataModel.flowNodeInstanceId;
     externalTask.correlationId = dataModel.correlationId;
+    externalTask.processModelId = dataModel.processModelId;
     externalTask.processInstanceId = dataModel.processInstanceId;
     externalTask.identity = identity;
     externalTask.payload = payload;
