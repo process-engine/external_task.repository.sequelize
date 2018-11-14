@@ -33,6 +33,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
   public async create<TPayloadType>(
     topic: string,
     correlationId: string,
+    processModelId: string,
     processInstanceId: string,
     flowNodeInstanceId: string,
     identity: IIdentity,
@@ -42,6 +43,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const createParams: any = {
       topic: topic,
       correlationId: correlationId,
+      processModelId: processModelId,
       processInstanceId: processInstanceId,
       flowNodeInstanceId: flowNodeInstanceId,
       identity: JSON.stringify(identity),
