@@ -120,6 +120,16 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     await externalTask.save();
   }
 
+  public async deleteExternalTasksByProcessModelId(processModelId: string): Promise<void> {
+    const queryParams: Sequelize.DestroyOptions = {
+      where: {
+        processModelId: processModelId,
+      },
+    };
+
+    this.externalTaskModel.destroy(queryParams);
+  }
+
   public async finishWithError(externalTaskId: string, error: Error): Promise<void> {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
