@@ -33,6 +33,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
   public async create<TPayloadType>(
     topic: string,
     correlationId: string,
+    processModelId: string,
     processInstanceId: string,
     flowNodeInstanceId: string,
     identity: IIdentity,
@@ -42,6 +43,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const createParams: any = {
       topic: topic,
       correlationId: correlationId,
+      processModelId: processModelId,
       processInstanceId: processInstanceId,
       flowNodeInstanceId: flowNodeInstanceId,
       identity: JSON.stringify(identity),
@@ -118,6 +120,16 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     await externalTask.save();
   }
 
+  public async deleteExternalTasksByProcessModelId(processModelId: string): Promise<void> {
+    const queryParams: Sequelize.DestroyOptions = {
+      where: {
+        processModelId: processModelId,
+      },
+    };
+
+    this.externalTaskModel.destroy(queryParams);
+  }
+
   public async finishWithError(externalTaskId: string, error: Error): Promise<void> {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
@@ -164,6 +176,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     externalTask.topic = dataModel.topic;
     externalTask.flowNodeInstanceId = dataModel.flowNodeInstanceId;
     externalTask.correlationId = dataModel.correlationId;
+    externalTask.processModelId = dataModel.processModelId;
     externalTask.processInstanceId = dataModel.processInstanceId;
     externalTask.identity = identity;
     externalTask.payload = payload;

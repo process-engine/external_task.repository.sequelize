@@ -6,6 +6,7 @@ export interface IExternalTask {
   topic: string;
   flowNodeInstanceId: string;
   correlationId: string;
+  processModelId: string;
   processInstanceId: string;
   lockExpirationTime?: Date;
   identity: string;
@@ -39,6 +40,10 @@ export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Mo
       allowNull: false,
     },
     correlationId: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    processModelId: {
       type: Sequelize.STRING,
       allowNull: false,
     },
