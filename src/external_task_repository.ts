@@ -30,15 +30,14 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     this._externalTaskModel = await loadModels(this.sequelize);
   }
 
-  public async create<TPayloadType>(
-    topic: string,
-    correlationId: string,
-    processModelId: string,
-    processInstanceId: string,
-    flowNodeInstanceId: string,
-    identity: IIdentity,
-    payload: TPayloadType,
-  ): Promise<void> {
+  public async create<TPayload>(topic: string,
+                                correlationId: string,
+                                processModelId: string,
+                                processInstanceId: string,
+                                flowNodeInstanceId: string,
+                                identity: IIdentity,
+                                payload: TPayload,
+                              ): Promise<void> {
 
     const createParams: any = {
       topic: topic,
@@ -54,7 +53,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     await this.externalTaskModel.create(createParams);
   }
 
-  public async getById<TPayloadType>(externalTaskId: string): Promise<ExternalTask<TPayloadType>> {
+  public async getById<TPayload>(externalTaskId: string): Promise<ExternalTask<TPayload>> {
 
     const result: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
@@ -66,15 +65,36 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
       throw new NotFoundError(`ExternalTask with ID ${externalTaskId} not found.`);
     }
 
-    const externalTask: ExternalTask<TPayloadType> = this._convertToRuntimeObject<TPayloadType>(result);
+    const externalTask: ExternalTask<TPayload> = this._convertToRuntimeObject<TPayload>(result);
 
     return externalTask;
   }
 
-  public async fetchAvailableForProcessing<TPayloadType>(
-    topicName: string,
-    maxTasks: number,
-  ): Promise<Array<ExternalTask<TPayloadType>>> {
+  public async getByInstanceIds<TPayload>(correlationId: string,
+                                          processInstanceId: string,
+                                          flowNodeInstanceId: string,
+                                        ): Promise<ExternalTask<TPayload>> {
+
+    const result: ExternalTaskModel = await this.externalTaskModel.findOne({
+      where: {
+        correlationId: correlationId,
+        processInstanceId: processInstanceId,
+        flowNodeInstanceId: flowNodeInstanceId,
+      },
+    });
+
+    if (!result) {
+      // tslint:disable-next-line:max-line-length
+      const error: string = `No ExternalTask with correlationId ${correlationId}, processInstanceId ${processInstanceId} and flowNodeInstanceId ${flowNodeInstanceId} found.`;
+      throw new NotFoundError(error);
+    }
+
+    const externalTask: ExternalTask<TPayload> = this._convertToRuntimeObject<TPayload>(result);
+
+    return externalTask;
+  }
+
+  public async fetchAvailableForProcessing<TPayload>(topicName: string, maxTasks: number): Promise<Array<ExternalTask<TPayload>>> {
 
     const now: Date = moment().toDate();
 
@@ -97,7 +117,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const results: Array<ExternalTaskModel> = await this.externalTaskModel.findAll(options);
 
-    const externalTasks: Array<ExternalTask<TPayloadType>> = results.map(this._convertToRuntimeObject.bind(this));
+    const externalTasks: Array<ExternalTask<TPayload>> = results.map(this._convertToRuntimeObject.bind(this));
 
     return externalTasks;
   }
@@ -166,11 +186,11 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
    * @param   dataModel The ExternalTaskModel to convert.
    * @returns           An ExternalTask object usable by the ProcessEngine.
    */
-  private _convertToRuntimeObject<TPayloadType>(dataModel: ExternalTaskModel): ExternalTask<TPayloadType> {
+  private _convertToRuntimeObject<TPayload>(dataModel: ExternalTaskModel): ExternalTask<TPayload> {
 
     const [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
 
-    const externalTask: ExternalTask<TPayloadType> = new ExternalTask<TPayloadType>();
+    const externalTask: ExternalTask<TPayload> = new ExternalTask<TPayload>();
     externalTask.id = dataModel.id;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
