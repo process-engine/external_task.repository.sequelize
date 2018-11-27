@@ -3,7 +3,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This repository uses sequelize to access and manipulate external tasks.",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
@@ -21,15 +21,14 @@
     "@types/node": "10.12.2",
     "@types/sequelize": "4.27.23",
     "gulp": "4.0.0",
-    "gulptraum": "3.0.0",
-    "gulptraum-typescript": "2.0.0",
+    "gulptraum": "~3.0.0",
+    "gulptraum-typescript": "~2.0.0",
     "tsconfig": "7.0.0",
     "tslint": "5.11.0",
     "typescript": "3.1.6"
   },
   "scripts": {
     "build": "gulp build",
-    "build-doc": "gulp doc",
     "lint": "gulp lint",
     "prepare": "npm run build",
     "test": "gulp test"
