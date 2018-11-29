@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
+import * as uuid from 'uuid';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
@@ -44,6 +45,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
                               ): Promise<void> {
 
     const createParams: any = {
+      externalTaskId: uuid.v4(),
       topic: topic,
       correlationId: correlationId,
       processModelId: processModelId,
@@ -61,7 +63,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const result: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -130,7 +132,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -158,7 +160,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -172,7 +174,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -195,7 +197,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
 
     const externalTask: ExternalTask<TPayload> = new ExternalTask<TPayload>();
-    externalTask.id = dataModel.id;
+    externalTask.id = dataModel.externalTaskId;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
     externalTask.flowNodeInstanceId = dataModel.flowNodeInstanceId;
