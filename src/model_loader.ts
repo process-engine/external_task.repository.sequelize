@@ -3,7 +3,7 @@ import * as Sequelize from 'sequelize';
 import {
   defineExternalTask,
   ExternalTaskModel,
-  IExternalTask
+  IExternalTask,
 } from './schemas/index';
 
 /**
