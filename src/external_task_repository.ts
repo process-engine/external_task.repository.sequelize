@@ -3,7 +3,7 @@ import * as Sequelize from 'sequelize';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
-import {getConnection} from '@essential-projects/sequelize_connection_manager';
+import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 import {
   ExternalTask,
   ExternalTaskState,
@@ -18,16 +18,20 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
   public config: Sequelize.Options;
 
   private _externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask>;
+  private _sequelize: Sequelize.Sequelize;
+  private _connectionManager: SequelizeConnectionManager;
 
-  private sequelize: Sequelize.Sequelize;
+  constructor(connectionManager: SequelizeConnectionManager) {
+    this._connectionManager = connectionManager;
+  }
 
   private get externalTaskModel(): Sequelize.Model<ExternalTaskModel, IExternalTask> {
     return this._externalTaskModel;
   }
 
   public async initialize(): Promise<void> {
-    this.sequelize = await getConnection(this.config);
-    this._externalTaskModel = await loadModels(this.sequelize);
+    this._sequelize = await this._connectionManager.getConnection(this.config);
+    this._externalTaskModel = await loadModels(this._sequelize);
   }
 
   public async create<TPayload>(topic: string,
