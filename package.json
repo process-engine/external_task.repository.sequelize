@@ -13,20 +13,20 @@
   ],
   "dependencies": {
     "@essential-projects/errors_ts": "~1.4.0",
-    "@essential-projects/sequelize_connection_manager": "~2.0.0",
+    "@essential-projects/sequelize_connection_manager": "feature~upgrade_sequelize",
     "@process-engine/external_task_api_contracts": "~1.0.0",
-    "sequelize": "4.41.2"
+    "sequelize": "~4.41.2"
   },
   "devDependencies": {
     "@essential-projects/tslint-config": "^1.1.3",
     "@types/node": "~10.12.10",
     "@types/sequelize": "~4.27.32",
-    "gulp": "4.0.0",
+    "gulp": "~4.0.0",
     "gulptraum": "~3.0.0",
     "gulptraum-typescript": "~2.0.0",
-    "tsconfig": "7.0.0",
-    "tslint": "5.11.0",
-    "typescript": "3.1.6"
+    "tsconfig": "~7.0.0",
+    "tslint": "~5.11.0",
+    "typescript": "~3.1.6"
   },
   "scripts": {
     "build": "gulp build",
