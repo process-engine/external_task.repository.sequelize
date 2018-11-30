@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 export interface IExternalTask {
-  id: string;
+  externalTaskId: string;
   workerId?: string;
   topic: string;
   flowNodeInstanceId: string;
@@ -22,10 +22,9 @@ export type ExternalTaskModel = Sequelize.Instance<IExternalTask> & IExternalTas
 
 export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Model<ExternalTaskModel, IExternalTask> {
   const attributes: SequelizeAttributes<IExternalTask> = {
-    id: {
-      type: Sequelize.UUID,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
+    externalTaskId: {
+      type: Sequelize.STRING,
+      allowNull: false,
     },
     workerId: {
       type: Sequelize.STRING,

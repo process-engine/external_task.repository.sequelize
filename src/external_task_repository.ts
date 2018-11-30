@@ -1,9 +1,10 @@
 import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
+import * as uuid from 'uuid';
 
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
-import {getConnection} from '@essential-projects/sequelize_connection_manager';
+import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 import {
   ExternalTask,
   ExternalTaskState,
@@ -18,16 +19,20 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
   public config: Sequelize.Options;
 
   private _externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask>;
+  private _sequelize: Sequelize.Sequelize;
+  private _connectionManager: SequelizeConnectionManager;
 
-  private sequelize: Sequelize.Sequelize;
+  constructor(connectionManager: SequelizeConnectionManager) {
+    this._connectionManager = connectionManager;
+  }
 
   private get externalTaskModel(): Sequelize.Model<ExternalTaskModel, IExternalTask> {
     return this._externalTaskModel;
   }
 
   public async initialize(): Promise<void> {
-    this.sequelize = await getConnection(this.config);
-    this._externalTaskModel = await loadModels(this.sequelize);
+    this._sequelize = await this._connectionManager.getConnection(this.config);
+    this._externalTaskModel = await loadModels(this._sequelize);
   }
 
   public async create<TPayload>(topic: string,
@@ -40,6 +45,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
                               ): Promise<void> {
 
     const createParams: any = {
+      externalTaskId: uuid.v4(),
       topic: topic,
       correlationId: correlationId,
       processModelId: processModelId,
@@ -57,7 +63,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const result: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -126,7 +132,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -154,7 +160,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -168,7 +174,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
 
     const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
       where: {
-        id: externalTaskId,
+        externalTaskId: externalTaskId,
       },
     });
 
@@ -191,7 +197,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
     const [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
 
     const externalTask: ExternalTask<TPayload> = new ExternalTask<TPayload>();
-    externalTask.id = dataModel.id;
+    externalTask.id = dataModel.externalTaskId;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
     externalTask.flowNodeInstanceId = dataModel.flowNodeInstanceId;
