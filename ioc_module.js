@@ -5,6 +5,7 @@ const ExternalTaskRepository = require('./dist/commonjs/index').ExternalTaskRepo
 function registerInContainer(container) {
 
   container.register('ExternalTaskRepository', ExternalTaskRepository)
+    .dependencies('SequelizeConnectionManager')
     .configure('process_engine:external_task_repository')
     .singleton();
 }
