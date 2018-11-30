@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "@essential-projects/errors_ts": "~1.4.0",
-    "@essential-projects/sequelize_connection_manager": "feature~upgrade_sequelize",
+    "@essential-projects/sequelize_connection_manager": "~2.1.0",
     "@process-engine/external_task_api_contracts": "~1.0.0",
     "sequelize": "~4.41.2"
   },
