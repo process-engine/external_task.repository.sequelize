@@ -1,7 +1,9 @@
+import {Logger} from 'loggerhythm';
 import * as moment from 'moment';
 import * as Sequelize from 'sequelize';
 import * as uuid from 'uuid';
 
+import {IDisposable} from '@essential-projects/bootstrapper_contracts';
 import {NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
@@ -14,7 +16,9 @@ import {
 import {loadModels} from './model_loader';
 import {ExternalTaskModel, IExternalTask} from './schemas';
 
-export class ExternalTaskRepository implements IExternalTaskRepository {
+const logger: Logger = new Logger('processengine:persistence:external_task_repository');
+
+export class ExternalTaskRepository implements IExternalTaskRepository, IDisposable {
 
   public config: Sequelize.Options;
 
@@ -31,8 +35,23 @@ export class ExternalTaskRepository implements IExternalTaskRepository {
   }
 
   public async initialize(): Promise<void> {
+    logger.verbose('Initializing Sequelize connection and loading models...');
+    const connectionAlreadyEstablished: boolean = this._sequelize !== undefined;
+    if (connectionAlreadyEstablished) {
+      logger.verbose('Repository already initialized. Done.');
+
+      return;
+    }
     this._sequelize = await this._connectionManager.getConnection(this.config);
     this._externalTaskModel = await loadModels(this._sequelize);
+    logger.verbose('Done.');
+  }
+
+  public async dispose(): Promise<void> {
+    logger.verbose('Disposing connection');
+    await this._connectionManager.destroyConnection(this.config);
+    this._sequelize = undefined;
+    logger.verbose('Done.');
   }
 
   public async create<TPayload>(topic: string,
