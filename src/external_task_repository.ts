@@ -1,7 +1,7 @@
 import {Logger} from 'loggerhythm';
 import * as moment from 'moment';
+import * as uuid from 'node-uuid';
 import * as Sequelize from 'sequelize';
-import * as uuid from 'uuid';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
 import {NotFoundError} from '@essential-projects/errors_ts';

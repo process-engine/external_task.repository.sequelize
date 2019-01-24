@@ -3,7 +3,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com"
   },
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "This repository uses sequelize to access and manipulate external tasks.",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
@@ -16,6 +16,7 @@
     "@essential-projects/errors_ts": "~1.4.0",
     "@essential-projects/sequelize_connection_manager": "~2.1.0",
     "@process-engine/external_task_api_contracts": "~1.0.0",
+    "node-uuid": "~1.4.8",
     "sequelize": "~4.41.2"
   },
   "devDependencies": {
