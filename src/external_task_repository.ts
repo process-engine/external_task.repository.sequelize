@@ -271,11 +271,10 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       const essentialProjectsError: Error = this._tryDeserializeEssentialProjectsError(dataModel.error);
 
       const errorIsFromEssentialProjects: boolean = essentialProjectsError !== undefined;
-      if (errorIsFromEssentialProjects) {
-        error = essentialProjectsError;
-      } else {
-        error = this._tryParse(dataModel.error);
-      }
+
+      error = errorIsFromEssentialProjects
+        ? essentialProjectsError
+        : this._tryParse(dataModel.error);
     }
 
     return [identity, payload, result, error];
