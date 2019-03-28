@@ -4,7 +4,7 @@ import * as uuid from 'node-uuid';
 import * as Sequelize from 'sequelize';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
-import {NotFoundError} from '@essential-projects/errors_ts';
+import {BaseError, isEssentialProjectsError, NotFoundError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 import {
@@ -183,7 +183,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       },
     });
 
-    externalTask.error = JSON.stringify(error);
+    externalTask.error = this._serializeError(error);
     externalTask.state = ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
@@ -201,6 +201,21 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     externalTask.state = ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
+  }
+
+  private _serializeError(error: any): string {
+
+    const errorIsFromEssentialProjects: boolean = isEssentialProjectsError(error);
+    if (errorIsFromEssentialProjects) {
+      return (error as BaseError).serialize();
+    }
+
+    const errorIsString: boolean = typeof error === 'string';
+    if (errorIsString) {
+      return error;
+    }
+
+    return JSON.stringify(error);
   }
 
   /**
@@ -237,21 +252,48 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
   private _sanitizeDataModel(dataModel: ExternalTaskModel): Array<any> {
     const identity: any = dataModel.identity
-      ? JSON.parse(dataModel.identity)
+      ? this._tryParse(dataModel.identity)
       : undefined;
 
     const payload: any = dataModel.payload
-      ? JSON.parse(dataModel.payload)
+      ? this._tryParse(dataModel.payload)
       : undefined;
 
     const result: any = dataModel.result
-      ? JSON.parse(dataModel.result)
+      ? this._tryParse(dataModel.result)
       : undefined;
 
-    const error: any = dataModel.error
-      ? JSON.parse(dataModel.error)
-      : undefined;
+    let error: Error;
+
+    const dataModelHasError: boolean = dataModel.error !== undefined;
+    if (dataModelHasError) {
+
+      const essentialProjectsError: Error = this._tryDeserializeEssentialProjectsError(dataModel.error);
+
+      const errorIsFromEssentialProjects: boolean = essentialProjectsError !== undefined;
+
+      error = errorIsFromEssentialProjects
+        ? essentialProjectsError
+        : this._tryParse(dataModel.error);
+    }
 
     return [identity, payload, result, error];
+  }
+
+  private _tryParse(value: string): any {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      // Value is not a JSON - return it as it is.
+      return value;
+    }
+  }
+
+  private _tryDeserializeEssentialProjectsError(value: string): Error {
+    try {
+      return BaseError.deserialize(value);
+    } catch (error) {
+      return undefined;
+    }
   }
 }
