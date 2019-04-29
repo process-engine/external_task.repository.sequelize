@@ -8,6 +8,7 @@ export class ExternalTaskModel extends Model<ExternalTaskModel> {
   public externalTaskId: string;
 
   @Column
+  @AllowNull(true)
   public workerId: string;
 
   @Column
@@ -31,12 +32,15 @@ export class ExternalTaskModel extends Model<ExternalTaskModel> {
   public processInstanceId: string;
 
   @Column
+  @AllowNull(true)
   public lockExpirationTime: Date;
 
   @Column(DataType.TEXT)
+  @AllowNull(true)
   public identity: string;
 
   @Column(DataType.TEXT)
+  @AllowNull(true)
   public payload: string;
 
   @Column({defaultValue: 'pending'})
@@ -44,12 +48,15 @@ export class ExternalTaskModel extends Model<ExternalTaskModel> {
   public state: string;
 
   @Column
+  @AllowNull(true)
   public finishedAt: Date;
 
   @Column(DataType.TEXT)
+  @AllowNull(true)
   public result: string;
 
   @Column(DataType.TEXT)
+  @AllowNull(true)
   public error: string;
 
   @CreatedAt
