@@ -3,60 +3,60 @@ import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 's
 @Table({modelName: 'ExternalTask', tableName: 'ExternalTask', version: true})
 export class ExternalTaskModel extends Model<ExternalTaskModel> {
 
-  @Column
   @AllowNull(false)
+  @Column
   public externalTaskId: string;
 
-  @Column
   @AllowNull(true)
+  @Column
   public workerId: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   public topic: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   public flowNodeInstanceId: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   public correlationId: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   public processModelId: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   public processInstanceId: string;
 
-  @Column
   @AllowNull(true)
+  @Column
   public lockExpirationTime: Date;
 
-  @Column(DataType.TEXT)
   @AllowNull(true)
+  @Column(DataType.TEXT)
   public identity: string;
 
-  @Column(DataType.TEXT)
   @AllowNull(true)
+  @Column(DataType.TEXT)
   public payload: string;
 
-  @Column({defaultValue: 'pending'})
   @AllowNull(false)
+  @Column({defaultValue: 'pending'})
   public state: string;
 
-  @Column
   @AllowNull(true)
+  @Column
   public finishedAt: Date;
 
-  @Column(DataType.TEXT)
   @AllowNull(true)
+  @Column(DataType.TEXT)
   public result: string;
 
-  @Column(DataType.TEXT)
   @AllowNull(true)
+  @Column(DataType.TEXT)
   public error: string;
 
   @CreatedAt
