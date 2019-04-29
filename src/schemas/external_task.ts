@@ -1,91 +1,60 @@
-import * as Sequelize from 'sequelize';
+import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 'sequelize-typescript';
 
-export interface IExternalTask {
-  externalTaskId: string;
-  workerId?: string;
-  topic: string;
-  flowNodeInstanceId: string;
-  correlationId: string;
-  processModelId: string;
-  processInstanceId: string;
-  lockExpirationTime?: Date;
-  identity: string;
-  payload: any;
-  state: string;
-  finishedAt?: Date;
-  result?: any;
-  error?: any;
-  createdAt?: Date;
-}
+@Table({version: true})
+export class ExternalTask extends Model<ExternalTask> {
 
-export type ExternalTaskModel = Sequelize.Instance<IExternalTask> & IExternalTask;
+  @Column
+  @AllowNull(false)
+  public externalTaskId: string;
 
-export function defineExternalTask(sequelize: Sequelize.Sequelize): Sequelize.Model<ExternalTaskModel, IExternalTask> {
-  const attributes: SequelizeAttributes<IExternalTask> = {
-    externalTaskId: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    workerId: {
-      type: Sequelize.STRING,
-      allowNull: true,
-    },
-    topic: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    flowNodeInstanceId: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    correlationId: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    processModelId: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    processInstanceId: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    lockExpirationTime: {
-      type: Sequelize.DATE,
-      allowNull: true,
-    },
-    identity: {
-      // Note: Sequelize.STRING equals varchar(255).
-      // Depending on the type of token used, this can easily exceed 255 chars.
-      type: Sequelize.TEXT,
-      allowNull: false,
-    },
-    payload: {
-      type: Sequelize.TEXT,
-      allowNull: true,
-    },
-    state: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: 'pending',
-    },
-    finishedAt: {
-      type: Sequelize.DATE,
-      allowNull: true,
-    },
-    result: {
-      type: Sequelize.TEXT,
-      allowNull: true,
-    },
-    error: {
-      type: Sequelize.TEXT,
-      allowNull: true,
-    },
-    createdAt: {
-      type: Sequelize.DATE,
-      allowNull: true,
-    },
-  };
+  @Column
+  public workerId: string;
 
-  return sequelize.define<ExternalTaskModel, IExternalTask>('ExternalTask', attributes, {version: true});
+  @Column
+  @AllowNull(false)
+  public topic: string;
+
+  @Column
+  @AllowNull(false)
+  public flowNodeInstanceId: string;
+
+  @Column
+  @AllowNull(false)
+  public correlationId: string;
+
+  @Column
+  @AllowNull(false)
+  public processModelId: string;
+
+  @Column
+  @AllowNull(false)
+  public processInstanceId: string;
+
+  @Column
+  public lockExpirationTime: Date;
+
+  @Column(DataType.TEXT)
+  public identity: string;
+
+  @Column(DataType.TEXT)
+  public payload: string;
+
+  @Column({defaultValue: 'pending'})
+  @AllowNull(false)
+  public state: string;
+
+  @Column
+  public finishedAt: Date;
+
+  @Column(DataType.TEXT)
+  public result: string;
+
+  @Column(DataType.TEXT)
+  public error: string;
+
+  @CreatedAt
+  public createdAt?: Date;
+
+  @UpdatedAt
+  public updatedAt?: Date;
 }
