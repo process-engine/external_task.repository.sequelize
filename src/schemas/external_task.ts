@@ -1,7 +1,7 @@
 import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 'sequelize-typescript';
 
-@Table({version: true})
-export class ExternalTask extends Model<ExternalTask> {
+@Table({modelName: 'ExternalTask', version: true})
+export class ExternalTaskModel extends Model<ExternalTaskModel> {
 
   @Column
   @AllowNull(false)
