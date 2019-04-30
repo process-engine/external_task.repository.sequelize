@@ -35,7 +35,7 @@ export class ExternalTaskModel extends Model<ExternalTaskModel> {
   @Column
   public lockExpirationTime: Date;
 
-  @AllowNull(true)
+  @AllowNull(false)
   @Column(DataType.TEXT)
   public identity: string;
 
