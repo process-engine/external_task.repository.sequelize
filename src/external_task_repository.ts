@@ -1,7 +1,9 @@
 import {Logger} from 'loggerhythm';
 import * as moment from 'moment';
 import * as uuid from 'node-uuid';
-import * as Sequelize from 'sequelize';
+
+import {DestroyOptions, FindOptions, Op as Operators} from 'sequelize';
+import {Sequelize, SequelizeOptions} from 'sequelize-typescript';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
 import {BaseError, isEssentialProjectsError, NotFoundError} from '@essential-projects/errors_ts';
@@ -13,25 +15,19 @@ import {
   IExternalTaskRepository,
 } from '@process-engine/external_task_api_contracts';
 
-import {loadModels} from './model_loader';
-import {ExternalTaskModel, IExternalTask} from './schemas';
+import {ExternalTaskModel} from './schemas';
 
 const logger: Logger = new Logger('processengine:persistence:external_task_repository');
 
 export class ExternalTaskRepository implements IExternalTaskRepository, IDisposable {
 
-  public config: Sequelize.Options;
+  public config: SequelizeOptions;
 
-  private _externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask>;
-  private _sequelize: Sequelize.Sequelize;
+  private _sequelize: Sequelize;
   private _connectionManager: SequelizeConnectionManager;
 
   constructor(connectionManager: SequelizeConnectionManager) {
     this._connectionManager = connectionManager;
-  }
-
-  private get externalTaskModel(): Sequelize.Model<ExternalTaskModel, IExternalTask> {
-    return this._externalTaskModel;
   }
 
   public async initialize(): Promise<void> {
@@ -43,7 +39,10 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       return;
     }
     this._sequelize = await this._connectionManager.getConnection(this.config);
-    this._externalTaskModel = await loadModels(this._sequelize);
+
+    this._sequelize.addModels([ExternalTaskModel]);
+    await this._sequelize.sync();
+
     logger.verbose('Done.');
   }
 
@@ -75,12 +74,12 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       isFinished: false,
     };
 
-    await this.externalTaskModel.create(createParams);
+    await ExternalTaskModel.create(createParams);
   }
 
   public async getById<TPayload>(externalTaskId: string): Promise<ExternalTask<TPayload>> {
 
-    const result: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const result: ExternalTaskModel = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -100,7 +99,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
                                           flowNodeInstanceId: string,
                                         ): Promise<ExternalTask<TPayload>> {
 
-    const result: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const result: ExternalTaskModel = await ExternalTaskModel.findOne({
       where: {
         correlationId: correlationId,
         processInstanceId: processInstanceId,
@@ -123,14 +122,14 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
     const now: Date = moment().toDate();
 
-    const options: Sequelize.FindOptions<IExternalTask> = {
+    const options: FindOptions = {
       where: {
         topic: topicName,
         state: ExternalTaskState.pending,
         lockExpirationTime: {
-          [Sequelize.Op.or]: [
-            {[Sequelize.Op.eq]: null},
-            {[Sequelize.Op.lt]: now},
+          [Operators.or]: [
+            {[Operators.eq]: null},
+            {[Operators.lt]: now},
           ],
         },
       },
@@ -140,7 +139,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       options.limit = maxTasks;
     }
 
-    const results: Array<ExternalTaskModel> = await this.externalTaskModel.findAll(options);
+    const results: Array<ExternalTaskModel> = await ExternalTaskModel.findAll(options);
 
     const externalTasks: Array<ExternalTask<TPayload>> = results.map(this._convertToRuntimeObject.bind(this));
 
@@ -149,7 +148,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
   public async lockForWorker(workerId: string, externalTaskId: string, exprationTime: Date): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -166,18 +165,18 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
   }
 
   public async deleteExternalTasksByProcessModelId(processModelId: string): Promise<void> {
-    const queryParams: Sequelize.DestroyOptions = {
+    const queryParams: DestroyOptions = {
       where: {
         processModelId: processModelId,
       },
     };
 
-    this.externalTaskModel.destroy(queryParams);
+    ExternalTaskModel.destroy(queryParams);
   }
 
   public async finishWithError(externalTaskId: string, error: Error): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -191,7 +190,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
   public async finishWithSuccess(externalTaskId: string, result: any): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask: ExternalTaskModel = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
