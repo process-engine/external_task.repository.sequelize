@@ -18,7 +18,7 @@
     "@process-engine/external_task_api_contracts": "^1.0.0",
     "node-uuid": "^1.4.8",
     "reflect-metadata": "^0.1.13",
-    "sequelize": "~5.7.0",
+    "sequelize": "^5.8.0",
     "sequelize-typescript": "next"
   },
   "devDependencies": {
