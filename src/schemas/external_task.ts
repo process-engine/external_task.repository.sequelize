@@ -1,4 +1,6 @@
-import {AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 'sequelize-typescript';
+import {
+  AllowNull, Column, CreatedAt, DataType, Model, Table, UpdatedAt,
+} from 'sequelize-typescript';
 
 @Table({modelName: 'ExternalTask', tableName: 'ExternalTasks', version: true})
 export class ExternalTaskModel extends Model<ExternalTaskModel> {
@@ -64,4 +66,5 @@ export class ExternalTaskModel extends Model<ExternalTaskModel> {
 
   @UpdatedAt
   public updatedAt?: Date;
+
 }
