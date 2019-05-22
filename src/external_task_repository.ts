@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {Logger} from 'loggerhythm';
 import * as moment from 'moment';
 import * as uuid from 'node-uuid';
-import * as Sequelize from 'sequelize';
+
+import {DestroyOptions, FindOptions, Op as Operators} from 'sequelize';
+import {Sequelize, SequelizeOptions} from 'sequelize-typescript';
 
 import {IDisposable} from '@essential-projects/bootstrapper_contracts';
-import {BaseError, isEssentialProjectsError, NotFoundError} from '@essential-projects/errors_ts';
+import {BaseError, NotFoundError, isEssentialProjectsError} from '@essential-projects/errors_ts';
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 import {
@@ -13,57 +16,55 @@ import {
   IExternalTaskRepository,
 } from '@process-engine/external_task_api_contracts';
 
-import {loadModels} from './model_loader';
-import {ExternalTaskModel, IExternalTask} from './schemas';
+import {ExternalTaskModel} from './schemas';
 
 const logger: Logger = new Logger('processengine:persistence:external_task_repository');
 
 export class ExternalTaskRepository implements IExternalTaskRepository, IDisposable {
 
-  public config: Sequelize.Options;
+  public config: SequelizeOptions;
 
-  private _externalTaskModel: Sequelize.Model<ExternalTaskModel, IExternalTask>;
-  private _sequelize: Sequelize.Sequelize;
-  private _connectionManager: SequelizeConnectionManager;
+  private sequelizeInstance: Sequelize;
+  private connectionManager: SequelizeConnectionManager;
 
   constructor(connectionManager: SequelizeConnectionManager) {
-    this._connectionManager = connectionManager;
-  }
-
-  private get externalTaskModel(): Sequelize.Model<ExternalTaskModel, IExternalTask> {
-    return this._externalTaskModel;
+    this.connectionManager = connectionManager;
   }
 
   public async initialize(): Promise<void> {
     logger.verbose('Initializing Sequelize connection and loading models...');
-    const connectionAlreadyEstablished: boolean = this._sequelize !== undefined;
+    const connectionAlreadyEstablished = this.sequelizeInstance !== undefined;
     if (connectionAlreadyEstablished) {
       logger.verbose('Repository already initialized. Done.');
 
       return;
     }
-    this._sequelize = await this._connectionManager.getConnection(this.config);
-    this._externalTaskModel = await loadModels(this._sequelize);
+    this.sequelizeInstance = await this.connectionManager.getConnection(this.config);
+
+    this.sequelizeInstance.addModels([ExternalTaskModel]);
+    await this.sequelizeInstance.sync();
+
     logger.verbose('Done.');
   }
 
   public async dispose(): Promise<void> {
     logger.verbose('Disposing connection');
-    await this._connectionManager.destroyConnection(this.config);
-    this._sequelize = undefined;
+    await this.connectionManager.destroyConnection(this.config);
+    this.sequelizeInstance = undefined;
     logger.verbose('Done.');
   }
 
-  public async create<TPayload>(topic: string,
-                                correlationId: string,
-                                processModelId: string,
-                                processInstanceId: string,
-                                flowNodeInstanceId: string,
-                                identity: IIdentity,
-                                payload: TPayload,
-                              ): Promise<void> {
+  public async create<TPayload>(
+    topic: string,
+    correlationId: string,
+    processModelId: string,
+    processInstanceId: string,
+    flowNodeInstanceId: string,
+    identity: IIdentity,
+    payload: TPayload,
+  ): Promise<void> {
 
-    const createParams: any = {
+    const createParams = {
       externalTaskId: uuid.v4(),
       topic: topic,
       correlationId: correlationId,
@@ -75,12 +76,12 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       isFinished: false,
     };
 
-    await this.externalTaskModel.create(createParams);
+    await ExternalTaskModel.create(createParams);
   }
 
   public async getById<TPayload>(externalTaskId: string): Promise<ExternalTask<TPayload>> {
 
-    const result: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const result = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -90,17 +91,18 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       throw new NotFoundError(`ExternalTask with ID ${externalTaskId} not found.`);
     }
 
-    const externalTask: ExternalTask<TPayload> = this._convertToRuntimeObject<TPayload>(result);
+    const externalTask = this.convertToRuntimeObject<TPayload>(result);
 
     return externalTask;
   }
 
-  public async getByInstanceIds<TPayload>(correlationId: string,
-                                          processInstanceId: string,
-                                          flowNodeInstanceId: string,
-                                        ): Promise<ExternalTask<TPayload>> {
+  public async getByInstanceIds<TPayload>(
+    correlationId: string,
+    processInstanceId: string,
+    flowNodeInstanceId: string,
+  ): Promise<ExternalTask<TPayload>> {
 
-    const result: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const result = await ExternalTaskModel.findOne({
       where: {
         correlationId: correlationId,
         processInstanceId: processInstanceId,
@@ -109,28 +111,30 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     });
 
     if (!result) {
-      // tslint:disable-next-line:max-line-length
-      const error: string = `No ExternalTask with correlationId ${correlationId}, processInstanceId ${processInstanceId} and flowNodeInstanceId ${flowNodeInstanceId} found.`;
+      // eslint-disable-next-line max-len
+      const error = `No ExternalTask with correlationId ${correlationId}, processInstanceId ${processInstanceId} and flowNodeInstanceId ${flowNodeInstanceId} found.`;
       throw new NotFoundError(error);
     }
 
-    const externalTask: ExternalTask<TPayload> = this._convertToRuntimeObject<TPayload>(result);
+    const externalTask = this.convertToRuntimeObject<TPayload>(result);
 
     return externalTask;
   }
 
   public async fetchAvailableForProcessing<TPayload>(topicName: string, maxTasks: number): Promise<Array<ExternalTask<TPayload>>> {
 
-    const now: Date = moment().toDate();
+    const now = moment().toDate();
 
-    const options: Sequelize.FindOptions<IExternalTask> = {
+    const options: FindOptions = {
       where: {
         topic: topicName,
         state: ExternalTaskState.pending,
         lockExpirationTime: {
-          [Sequelize.Op.or]: [
-            {[Sequelize.Op.eq]: null},
-            {[Sequelize.Op.lt]: now},
+          [Operators.or]: [
+            // Null-values are stored and retrieved as null, so null-checks are required here.
+            // eslint-disable-next-line no-null/no-null
+            {[Operators.eq]: null},
+            {[Operators.lt]: now},
           ],
         },
       },
@@ -140,16 +144,16 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
       options.limit = maxTasks;
     }
 
-    const results: Array<ExternalTaskModel> = await this.externalTaskModel.findAll(options);
+    const results = await ExternalTaskModel.findAll(options);
 
-    const externalTasks: Array<ExternalTask<TPayload>> = results.map(this._convertToRuntimeObject.bind(this));
+    const externalTasks = results.map<ExternalTask<TPayload>>(this.convertToRuntimeObject.bind(this));
 
     return externalTasks;
   }
 
   public async lockForWorker(workerId: string, externalTaskId: string, exprationTime: Date): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -166,24 +170,24 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
   }
 
   public async deleteExternalTasksByProcessModelId(processModelId: string): Promise<void> {
-    const queryParams: Sequelize.DestroyOptions = {
+    const queryParams: DestroyOptions = {
       where: {
         processModelId: processModelId,
       },
     };
 
-    this.externalTaskModel.destroy(queryParams);
+    ExternalTaskModel.destroy(queryParams);
   }
 
   public async finishWithError(externalTaskId: string, error: Error): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
     });
 
-    externalTask.error = this._serializeError(error);
+    externalTask.error = this.serializeError(error);
     externalTask.state = ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
@@ -191,7 +195,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
   public async finishWithSuccess(externalTaskId: string, result: any): Promise<void> {
 
-    const externalTask: ExternalTaskModel = await this.externalTaskModel.findOne({
+    const externalTask = await ExternalTaskModel.findOne({
       where: {
         externalTaskId: externalTaskId,
       },
@@ -203,16 +207,16 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     await externalTask.save();
   }
 
-  private _serializeError(error: any): string {
+  private serializeError(error: Error | string): string {
 
-    const errorIsFromEssentialProjects: boolean = isEssentialProjectsError(error);
+    const errorIsFromEssentialProjects = isEssentialProjectsError(error);
     if (errorIsFromEssentialProjects) {
       return (error as BaseError).serialize();
     }
 
-    const errorIsString: boolean = typeof error === 'string';
+    const errorIsString = typeof error === 'string';
     if (errorIsString) {
-      return error;
+      return error as string;
     }
 
     return JSON.stringify(error);
@@ -226,11 +230,11 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
    * @param   dataModel The ExternalTaskModel to convert.
    * @returns           An ExternalTask object usable by the ProcessEngine.
    */
-  private _convertToRuntimeObject<TPayload>(dataModel: ExternalTaskModel): ExternalTask<TPayload> {
+  private convertToRuntimeObject<TPayload>(dataModel: ExternalTaskModel): ExternalTask<TPayload> {
 
-    const [identity, payload, result, error] = this._sanitizeDataModel(dataModel);
+    const [identity, payload, result, error] = this.sanitizeDataModel(dataModel);
 
-    const externalTask: ExternalTask<TPayload> = new ExternalTask<TPayload>();
+    const externalTask = new ExternalTask<TPayload>();
     externalTask.id = dataModel.externalTaskId;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
@@ -250,37 +254,37 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     return externalTask;
   }
 
-  private _sanitizeDataModel(dataModel: ExternalTaskModel): Array<any> {
-    const identity: any = dataModel.identity
-      ? this._tryParse(dataModel.identity)
+  private sanitizeDataModel(dataModel: ExternalTaskModel): Array<any> {
+    const identity = dataModel.identity
+      ? this.tryParse(dataModel.identity)
       : undefined;
 
-    const payload: any = dataModel.payload
-      ? this._tryParse(dataModel.payload)
+    const payload = dataModel.payload
+      ? this.tryParse(dataModel.payload)
       : undefined;
 
-    const result: any = dataModel.result
-      ? this._tryParse(dataModel.result)
+    const result = dataModel.result
+      ? this.tryParse(dataModel.result)
       : undefined;
 
     let error: Error;
 
-    const dataModelHasError: boolean = dataModel.error !== undefined;
+    const dataModelHasError = dataModel.error !== undefined;
     if (dataModelHasError) {
 
-      const essentialProjectsError: Error = this._tryDeserializeEssentialProjectsError(dataModel.error);
+      const essentialProjectsError: Error = this.tryDeserializeEssentialProjectsError(dataModel.error);
 
-      const errorIsFromEssentialProjects: boolean = essentialProjectsError !== undefined;
+      const errorIsFromEssentialProjects = essentialProjectsError !== undefined;
 
       error = errorIsFromEssentialProjects
         ? essentialProjectsError
-        : this._tryParse(dataModel.error);
+        : this.tryParse(dataModel.error);
     }
 
     return [identity, payload, result, error];
   }
 
-  private _tryParse(value: string): any {
+  private tryParse(value: string): any {
     try {
       return JSON.parse(value);
     } catch (error) {
@@ -289,11 +293,12 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     }
   }
 
-  private _tryDeserializeEssentialProjectsError(value: string): Error {
+  private tryDeserializeEssentialProjectsError(value: string): Error {
     try {
       return BaseError.deserialize(value);
     } catch (error) {
       return undefined;
     }
   }
+
 }
