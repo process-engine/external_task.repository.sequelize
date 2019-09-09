@@ -11,10 +11,9 @@ import {BaseError, NotFoundError, isEssentialProjectsError} from '@essential-pro
 import {IIdentity} from '@essential-projects/iam_contracts';
 import {SequelizeConnectionManager} from '@essential-projects/sequelize_connection_manager';
 import {
-  ExternalTask,
-  ExternalTaskState,
+  DataModels,
   IExternalTaskRepository,
-} from '@process-engine/external_task_api_contracts';
+} from '@process-engine/consumer_api_contracts';
 
 import {ExternalTaskModel} from './schemas';
 
@@ -79,7 +78,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     await ExternalTaskModel.create(createParams);
   }
 
-  public async getById<TPayload>(externalTaskId: string): Promise<ExternalTask<TPayload>> {
+  public async getById<TPayload>(externalTaskId: string): Promise<DataModels.ExternalTask.ExternalTask<TPayload>> {
 
     const result = await ExternalTaskModel.findOne({
       where: {
@@ -100,7 +99,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     correlationId: string,
     processInstanceId: string,
     flowNodeInstanceId: string,
-  ): Promise<ExternalTask<TPayload>> {
+  ): Promise<DataModels.ExternalTask.ExternalTask<TPayload>> {
 
     const result = await ExternalTaskModel.findOne({
       where: {
@@ -121,14 +120,17 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     return externalTask;
   }
 
-  public async fetchAvailableForProcessing<TPayload>(topicName: string, maxTasks: number): Promise<Array<ExternalTask<TPayload>>> {
+  public async fetchAvailableForProcessing<TPayload>(
+    topicName: string,
+    maxTasks: number,
+  ): Promise<Array<DataModels.ExternalTask.ExternalTask<TPayload>>> {
 
     const now = moment().toDate();
 
     const options: FindOptions = {
       where: {
         topic: topicName,
-        state: ExternalTaskState.pending,
+        state: DataModels.ExternalTask.ExternalTaskState.pending,
         lockExpirationTime: {
           [Operators.or]: [
             // Null-values are stored and retrieved as null, so null-checks are required here.
@@ -146,7 +148,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
 
     const results = await ExternalTaskModel.findAll(options);
 
-    const externalTasks = results.map<ExternalTask<TPayload>>(this.convertToRuntimeObject.bind(this));
+    const externalTasks = results.map<DataModels.ExternalTask.ExternalTask<TPayload>>(this.convertToRuntimeObject.bind(this));
 
     return externalTasks;
   }
@@ -188,7 +190,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     });
 
     externalTask.error = this.serializeError(error);
-    externalTask.state = ExternalTaskState.finished;
+    externalTask.state = DataModels.ExternalTask.ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
   }
@@ -202,7 +204,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     });
 
     externalTask.result = JSON.stringify(result);
-    externalTask.state = ExternalTaskState.finished;
+    externalTask.state = DataModels.ExternalTask.ExternalTaskState.finished;
     externalTask.finishedAt = moment().toDate();
     await externalTask.save();
   }
@@ -230,11 +232,11 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
    * @param   dataModel The ExternalTaskModel to convert.
    * @returns           An ExternalTask object usable by the ProcessEngine.
    */
-  private convertToRuntimeObject<TPayload>(dataModel: ExternalTaskModel): ExternalTask<TPayload> {
+  private convertToRuntimeObject<TPayload>(dataModel: ExternalTaskModel): DataModels.ExternalTask.ExternalTask<TPayload> {
 
     const [identity, payload, result, error] = this.sanitizeDataModel(dataModel);
 
-    const externalTask = new ExternalTask<TPayload>();
+    const externalTask = new DataModels.ExternalTask.ExternalTask<TPayload>();
     externalTask.id = dataModel.externalTaskId;
     externalTask.workerId = dataModel.workerId;
     externalTask.topic = dataModel.topic;
@@ -245,7 +247,7 @@ export class ExternalTaskRepository implements IExternalTaskRepository, IDisposa
     externalTask.identity = identity;
     externalTask.payload = payload;
     externalTask.lockExpirationTime = dataModel.lockExpirationTime;
-    externalTask.state = ExternalTaskState[dataModel.state];
+    externalTask.state = DataModels.ExternalTask.ExternalTaskState[dataModel.state];
     externalTask.finishedAt = dataModel.finishedAt;
     externalTask.error = error;
     externalTask.result = result;
