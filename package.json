@@ -16,7 +16,7 @@
     "@essential-projects/bootstrapper_contracts": "^1.4.0",
     "@essential-projects/errors_ts": "^1.5.0",
     "@essential-projects/sequelize_connection_manager": "^3.0.0",
-    "@process-engine/consumer_api_contracts": "8.1.0-381a51b8-b32",
+    "@process-engine/consumer_api_contracts": "8.1.0-9b902a18-b33",
     "node-uuid": "^1.4.8",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.8.0",
