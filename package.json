@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@essential-projects/eslint-config": "^1.0.0",
+    "@process-engine/ci_tools": "^2.0.0",
     "@types/bluebird": "^3.5.26",
     "@types/node": "^10.12.10",
     "@types/validator": "^10.11.0",
