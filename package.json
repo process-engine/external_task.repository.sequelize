@@ -1,22 +1,30 @@
 {
   "name": "@process-engine/external_task.repository.sequelize",
-  "publishConfig": {
-    "registry": "https://www.npmjs.com"
-  },
   "version": "3.1.0",
-  "description": "This repository uses sequelize to access and manipulate external tasks.",
-  "license": "MIT",
+  "description": "the http-package for process-engine-consumer",
   "main": "dist/commonjs/index.js",
   "typings": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/process-engine/external_task.repository.sequelize.git"
+  },
   "author": "5Minds IT-Solutions GmbH & Co. KG",
-  "contributors": [
-    "Christian Werner <christian.werner@5minds.de>"
+  "maintainers": [
+    "Alexander Kasten <alexander.kasten@5minds.de>",
+    "Christian Werner <christian.werner@5minds.de>",
+    "René Föhring <rene.foehring@5minds.de>",
+    "Steffen Knaup <steffen.knaup@5minds.de>"
   ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/process-engine/external_task.repository.sequelize/issues"
+  },
+  "homepage": "https://github.com/process-engine/external_task.repository.sequelize#readme",
   "dependencies": {
     "@essential-projects/bootstrapper_contracts": "^1.4.0",
     "@essential-projects/errors_ts": "^1.5.0",
     "@essential-projects/sequelize_connection_manager": "^3.0.0",
-    "@process-engine/consumer_api_contracts": "9.0.0-beta.1",
+    "@process-engine/consumer_api_contracts": "9.0.0-alpha.1",
     "node-uuid": "^1.4.8",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.8.0",
