@@ -1,6 +1,6 @@
 {
   "name": "@process-engine/external_task.repository.sequelize",
-  "version": "3.1.0-beta.2",
+  "version": "3.1.0-beta.3",
   "description": "the http-package for process-engine-consumer",
   "main": "dist/commonjs/index.js",
   "typings": "dist/index.d.ts",
